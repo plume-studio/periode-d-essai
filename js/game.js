@@ -114,7 +114,7 @@ function nearestInteract() {
   for (const it of G.interacts) {
     if (it.when && !it.when()) continue;
     let x = it.x, y = it.y; if (it.ent) { const e = getEnt(it.ent); if (!e || e.hidden) continue; x = e.x; y = e.y - 6; }
-    const d = Math.hypot(p.x - x, p.y - y); if (d < (it.r || 36) && d < bd) { bd = d; best = it; }
+    const d = Math.hypot(p.x - x, p.y - y); if (d < (it.r || 46) && d < bd) { bd = d; best = it; }
   }
   return best;
 }

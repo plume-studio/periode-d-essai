@@ -2,13 +2,13 @@
 const MW = 36, MH = 23;
 const World = {
   wall: new Uint8Array(MW * MH), floor: new Array(MW * MH).fill(null),
-  solidP: new Uint8Array(MW * MH), doors: [], props: [], decals: [], ents: [], layer: null, night: false
+  solidP: new Uint8Array(MW * MH), chairP: new Uint8Array(MW * MH), doors: [], props: [], decals: [], ents: [], layer: null, night: false
 };
 const idx = (x, y) => y * MW + x;
 const isWall = (x, y) => x < 0 || y < 0 || x >= MW || y >= MH || World.wall[idx(x, y)] === 1;
 
 function buildMap() {
-  const Wd = World; Wd.wall.fill(1); Wd.floor.fill(null); Wd.solidP.fill(0); Wd.doors = []; Wd.props = []; Wd.decals = [];
+  const Wd = World; Wd.wall.fill(1); Wd.floor.fill(null); Wd.solidP.fill(0); Wd.chairP.fill(0); Wd.doors = []; Wd.props = []; Wd.decals = [];
   const room = (x1, y1, x2, y2, f) => { for (let y = y1; y <= y2; y++) for (let x = x1; x <= x2; x++) { Wd.wall[idx(x, y)] = 0; Wd.floor[idx(x, y)] = f; } };
   room(1, 2, 17, 8, 'carpet');     // open space
   room(19, 2, 27, 8, 'carpet');    // salle de réunion
@@ -32,7 +32,7 @@ function setDoor(id, locked) { const d = World.doors.find(d => d.id === id); if 
 function blockedFor(x, y, who) {
   if (isWall(x, y)) return true;
   if (World.solidP[idx(x, y)]) return true;
-  if (who === 'player') { const d = doorAt(x, y); if (d && d.locked) return true; }
+  if (who === 'player') { if (World.chairP[idx(x, y)] && !G.sitting) return true; const d = doorAt(x, y); if (d && d.locked) return true; }
   return false;
 }
 const ROOMS = [
@@ -50,6 +50,7 @@ function place(name, tx, ty, o = {}) {
     id: o.id || null, img: fr.img, f, x: tx * T - f.anchor.x + (o.dx || 0), y: ty * T - f.anchor.y + (o.dy || 0) - (o.lift || 0),
     sortY: (ty + fh) * T - 1 + (o.sort || 0) + (o.lift ? 2 : 0), hidden: false, tag: o.tag
   };
+  if (name.startsWith('office_chair')) for (const y of new Set([Math.floor(ty), Math.ceil(ty)])) for (const x of new Set([Math.floor(tx), Math.ceil(tx)])) World.chairP[idx(x, y)] = 1;
   if (o.solid !== false && !o.lift) for (let y = Math.floor(ty); y < Math.ceil(ty + fh); y++) for (let x = Math.floor(tx); x < Math.ceil(tx + fw); x++) World.solidP[idx(x, y)] = 1;
   World.props.push(p); return p;
 }
@@ -216,7 +217,7 @@ function moveBody(e, dx, dy) {
 // ---------- A* ----------
 function findPath(sx, sy, tx, ty, who = 'npc') {
   sx = Math.floor(sx); sy = Math.floor(sy); tx = Math.floor(tx); ty = Math.floor(ty);
-  const walk = (x, y) => !(isWall(x, y) || (World.solidP[idx(x, y)] && !(x === tx && y === ty)) || (who === 'player' && doorAt(x, y) && doorAt(x, y).locked));
+  const walk = (x, y) => !(isWall(x, y) || (World.solidP[idx(x, y)] && !(x === tx && y === ty)) || (who === 'player' && ((doorAt(x, y) && doorAt(x, y).locked) || (World.chairP[idx(x, y)] && !(x === tx && y === ty)))));
   const open = [[sx, sy]], came = new Map(), gS = new Map(), key = (x, y) => x + y * MW;
   gS.set(key(sx, sy), 0); let guard = 0;
   while (open.length && guard++ < 4000) {
