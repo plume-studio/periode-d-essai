@@ -67,11 +67,11 @@ function draw() {
   if (G.state === 'title') { drawTitle(); drawToasts(); return; }
   if (G.state === 'end') { drawEnd(); return; }
   ctx.fillStyle = '#121016'; ctx.fillRect(0, 0, W, H);
-  drawWorld(ctx, worldOverlay);
-  if (World.night) drawDarkness();
+  drawWorld(ctx, g => { worldOverlay(g); drawSmoke(g); });
+  if (World.night) drawDarkness(); else drawTimeTint();
   ctx.drawImage(FX.vig, 0, 0);
   drawWorldUI(true);
-  G.hudIn = lerp(G.hudIn || 0, G.state === 'cut' || G.state === 'accuse' ? 0 : 1, .12);
+  G.hudIn = lerp(G.hudIn || 0, ['cut', 'accuse', 'talk', 'choice'].includes(G.state) ? 0 : 1, .12);
   if (G.hudIn > .02) { ctx.save(); ctx.globalAlpha = G.hudIn; drawHUD(); ctx.restore(); }
   drawWorldUI(false);
   if (G.state === 'cut' && !G.cardShow) drawLetterbox(1);
@@ -82,6 +82,9 @@ function draw() {
   if (G.state === 'fired') drawFired();
   if (G.state === 'pause') drawPause();
   if (G.state === 'accuse') drawAccuse();
+  if (G.state === 'talk') drawTalk();
+  if (G.state === 'choice') drawChoice();
+  drawScreenFX();
   if (G.clueCard && G.state !== 'book') drawClueToast();
   if (!['report', 'fired', 'pause', 'book'].includes(G.state)) drawToasts();
   drawGrain(ctx, .35);
@@ -184,7 +187,7 @@ function drawHUD() {
   const rx = W - 320; panelBox(g, rx, 18, 300, 112);
   drawIcon(g, 'star', rx + 20, 32, 22); tx(g, '' + G.rep, rx + 50, 51, { f: 'mono', size: 22, col: UI.acc });
   tx(g, 'RÉPUTATION', rx + 50, 66, { f: 'mono', size: 9, col: UI.mute, ls: 2 });
-  drawIcon(g, 'search', rx + 166, 32, 22); tx(g, G.clues.length + '/14', rx + 196, 51, { f: 'mono', size: 22, col: UI.vio });
+  drawIcon(g, 'search', rx + 166, 32, 22); tx(g, G.clues.length + '/' + CLUE_TOTAL(), rx + 196, 51, { f: 'mono', size: 22, col: UI.vio });
   tx(g, 'INDICES', rx + 196, 66, { f: 'mono', size: 9, col: UI.mute, ls: 2 });
   g.fillStyle = UI.line; g.fillRect(rx + 20, 78, 260, 1);
   drawIcon(g, 'eye', rx + 20, 88, 20); tx(g, 'SOUPÇON', rx + 48, 103, { f: 'mono', size: 10, col: UI.mute, ls: 2 });
@@ -247,7 +250,7 @@ function drawBook() {
   rr(g, 74, 84, W - 148, H - 158, 6); g.fillStyle = '#b48555'; g.fill();
   g.save(); rr(g, 74, 84, W - 148, H - 158, 6); g.clip(); for (let i = 0; i < 520; i++) { g.fillStyle = i % 3 ? 'rgba(90,55,25,.16)' : 'rgba(255,230,190,.08)'; g.fillRect((i * 97) % (W - 160) + 80, (i * 53) % (H - 170) + 88, 3, 2); } g.restore();
   tx(g, "CARNET D'ENQUÊTE", 100, 52, { f: 'disp', size: 40, ls: 2 });
-  tx(g, G.clues.length + ' / 14 INDICES', W - 100, 50, { f: 'mono', size: 14, col: UI.vio, align: 'right', ls: 3 });
+  tx(g, G.clues.length + ' / ' + CLUE_TOTAL() + ' INDICES', W - 100, 50, { f: 'mono', size: 14, col: UI.vio, align: 'right', ls: 3 });
   if (!G.clues.length) { tx(g, 'Rien pour l\'instant…', W / 2, H / 2, { f: 'type', size: 28, col: UI.ink, align: 'center' }); return; }
   const cw = 168, ch = 196, cols = 6, gx = (W - 148 - cols * cw) / (cols + 1);
   G.clues.forEach((id, i) => { const x = 74 + gx + (i % cols) * (cw + gx), y = 104 + Math.floor(i / cols) * (ch + 18) + ((i * 7) % 5); if (y < H - 230) clueFrame(g, id, x, y, cw, ch, i === G.bookSel); });
@@ -271,7 +274,7 @@ function drawReport() {
   tx(g, 'ÉVALUATION DU ' + DAYNAMES[G.day - 1], x + 40, y + 104, { f: 'disp', size: 46, col: UI.ink, ls: 1 });
   g.fillStyle = UI.ink; g.fillRect(x + 40, y + 120, w - 80, 3);
   const st = G.dayStars, avg = st.length ? st.reduce((a, b) => a + b, 0) / st.length : 3;
-  const rows = [['Missions accomplies', G.tasks.filter(t => t.done && !t.clue).length + ' / ' + G.tasks.filter(t => !t.clue).length], ['Indices trouvés', G.clues.length + ' / 14'], ['Réputation', '' + G.rep], ['Avertissements', '' + G.warnings]];
+  const rows = [['Missions accomplies', G.tasks.filter(t => t.done && !t.clue).length + ' / ' + G.tasks.filter(t => !t.clue).length], ['Indices trouvés', G.clues.length + ' / ' + CLUE_TOTAL()], ['Réputation', '' + G.rep], ['Avertissements', '' + G.warnings]];
   rows.forEach((r, i) => { tx(g, r[0], x + 40, y + 168 + i * 40, { f: 'type', size: 22, col: UI.ink }); tx(g, r[1], x + w - 40, y + 168 + i * 40, { f: 'mono', size: 20, col: UI.ink, align: 'right' }); });
   tx(g, 'Note du jour', x + 40, y + 350, { f: 'type', size: 22, col: UI.ink }); stars(g, Math.round(avg), x + w - 160, y + 342, 30);
   const night = DAYS[G.day].night && !G.nightDone;
@@ -382,9 +385,14 @@ function drawEnd() {
     tx(g, 'FIN', 96, 140, { f: 'mono', size: 14, col: UI.mute, ls: 6 });
     tx(g, E.title, 90, 260, { f: 'disp', size: E.title.length > 14 ? 96 : 120, col: E.col, ls: 3, sh: 6 });
     tx(g, E.sub, 98, 318, { f: 'type', size: 24, col: '#e9e1d2' });
-    tx(g, 'RÉPUTATION  ' + G.rep + '     INDICES  ' + G.clues.length + ' / 14', 98, 380, { f: 'mono', size: 15, col: UI.acc, ls: 2 });
-    if (G.endKind === 'bonne') tx(g, 'Il existe une autre fin… le patron cache quelque chose.', 98, 416, { f: 'type', size: 19, col: UI.vio });
-    stamp(g, G.endKind === 'secrete' ? 'PROMU DIRECTEUR' : 'DOSSIER CLOS', 1010, 150, { size: 40, rot: -.12, col: G.endKind === 'secrete' ? UI.vio : UI.red });
+    tx(g, 'RÉPUTATION  ' + G.rep + '     INDICES  ' + G.clues.length + ' / ' + CLUE_TOTAL(), 98, 380, { f: 'mono', size: 15, col: UI.acc, ls: 2 });
+    const F = G.flags, ep = [];
+    if (G.endKind === 'bonne') ep.push(['Il existe une autre fin… le patron cache quelque chose.', UI.vio]);
+    if (F.coverJ === true) ep.push(['Josiane devient comptable en chef. Elle te doit une fière chandelle.', '#cfc8d8']); else if (F.coverJ === false) ep.push(['Josiane a été virée. Elle t\'en veut encore.', '#cfc8d8']);
+    if (F.bribe === true) ep.push(['Les notes de frais de Patrick ? Personne n\'en saura rien. Grâce à toi.', '#cfc8d8']); else if (F.bribe === false) ep.push(['Patrick ne t\'a jamais pardonné ton refus.', '#cfc8d8']);
+    if (F.deal === false && G.endKind !== 'silence') ep.push(['Gribouille t\'avait prévenu. Tu ne l\'as pas écouté.', '#cfc8d8']);
+    ep.forEach(([t, c], i) => tx(g, t, 98, 416 + i * 26, { f: 'type', size: 18, col: c }));
+    stamp(g, G.endKind === 'secrete' ? 'PROMU DIRECTEUR' : G.endKind === 'silence' ? 'CLASSÉ SANS SUITE' : 'DOSSIER CLOS', 1010, 150, { size: 40, rot: -.12, col: G.endKind === 'secrete' ? UI.vio : G.endKind === 'silence' ? '#8f889c' : UI.red });
   } else {
     tx(g, "PÉRIODE", 90, 230, { f: 'disp', size: 110, ls: 3, sh: 5 }); tx(g, "D'ESSAI", 90, 340, { f: 'disp', size: 110, col: UI.acc, ls: 3, sh: 5 });
   }

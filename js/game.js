@@ -53,7 +53,7 @@ function startNight() {
   buildMap(); World.ents = []; World.decals = [];
   G.tasks = N.tasks.map(t => Object.assign({ done: false, stars: 0 }, t));
   entAtSpot('player', N.start || 'player');
-  N.guards.forEach(gd => { const e = entAtSpot(gd.id, gd.route[0]); e.route = gd.route; e.ri = 0; e.speed = gd.speed || 46; e.wait = 0; e.guard = true; });
+  N.guards.forEach(gd => { const e = entAtSpot(gd.id, gd.route[0]); e.route = gd.route; e.ri = 0; e.speed = gd.speed || 46; e.wait = 0; e.guard = true; e.vrange = gd.vrange; });
   DAYS[G.day].setupWorld && DAYS[G.day].setupWorld();
   N.setup && N.setup();
   Sound.music('night');
@@ -163,7 +163,7 @@ function updatePlay(dt) {
   // temps
   if (!G.night) {
     const allDone = G.tasks.filter(t => t.req && !t.done).length === 0;
-    G.time += dt * (allDone ? 4 : 1);
+    G.time += dt * (allDone ? 4 : 1) * (G.sitting ? 5 : 1);
     (D.events || []).forEach(ev => { if (!ev.fired && G.time >= ev.at) { ev.fired = true; ev.fn(); } });
     G.tasks.forEach(t => { if (t.until && !t.done && !t.failed && G.time > t.until) { t.failed = true; G.warnings++; Sound.play('alarm'); toast('Raté : ' + t.label + ' — avertissement ' + G.warnings + '/3', '#ff7a6e'); if (G.warnings >= 3) fired('Trois avertissements.'); } });
     if (G.time >= hm(18)) { if (G.tasks.filter(t => t.req && !t.done && !t.failed).length) { fired('18h00 et le boulot n\'est pas fini.'); return; } endDay(); return; }
@@ -175,7 +175,7 @@ function updatePlay(dt) {
   if (mx || my) {
     const l = Math.hypot(mx, my), sp = p.speed * dt; moveBody(p, mx / l * sp, my / l * sp);
     p.dir = Math.abs(mx) > Math.abs(my) ? (mx > 0 ? 'right' : 'left') : (my > 0 ? 'down' : 'up'); p.moving = true;
-    p.stepT = (p.stepT || 0) - dt; if (p.stepT <= 0) { p.stepT = .32; Sound.play('step'); }
+    
   } else p.moving = false;
   p.anim += dt; if (p.bubbleT > 0) { p.bubbleT -= dt; if (p.bubbleT <= 0) p.bubble = null; }
   // PNJ
@@ -203,8 +203,8 @@ function updatePlay(dt) {
     if (G.susp >= 100) { fired('Trop curieux. On t\'a vu fouiner.'); return; }
   } else {
     // nuit : repéré par un vigile
-    const s = World.ents.find(e => e.guard && canSee(e, p.x, p.y, 4.4 * T, .5));
-    if (s) { s.bubble = '!'; s.bubbleT = 1; Sound.play('spotted'); G.state = 'fired'; G.firedReason = 'Le vigile t\'a repéré !'; G.caught = true; return; }
+    const s = World.ents.find(e => e.guard && canSee(e, p.x, p.y, (e.vrange || 4.4) * T, .5));
+    if (s) { s.bubble = '!'; s.bubbleT = 1; Sound.play('spotted'); G.state = 'fired'; G.firedReason = s.id === 'nadia' ? 'Nadia t\'a vu. Elle a appelé le vigile.' : 'Le vigile t\'a repéré !'; G.caught = true; return; }
   }
   // sortie
   if (p.y > 22.3 * T) {

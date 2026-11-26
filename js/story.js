@@ -140,7 +140,6 @@ DAYS[1] = {
   ],
   tick: coolerChat([['josiane', 'Tu sais pour Bernard ?'], ['patrick', 'Il posait trop de questions.'], ['josiane', 'Sur les factures…'], ['patrick', 'Chut. Le nouveau.']]),
   interacts() {
-    if (chatting('josiane', 'patrick') && !task('ragot').done && !G.flags.tipRagot) { const p = player(); if (p && Math.hypot(p.x - 19.5 * T, p.y - 16.6 * T) < 3 * T) { G.flags.tipRagot = true; toast('Glisse-toi derrière eux, côté table', '#c9a8ff'); } }
     return [
       pickCarry('courrier', 4.5, 18.6, 'Prendre le courrier', { icon: 'mail', to: ['josiane', 'patrick', 'kevin', 'gerard'], n: 4 }),
       it(14.5, 16.6, 'Faire le café', () => startMG('cafe', { cups: ['moyen'] }, st => { setCarry({ icon: 'coffee', to: ['gerard'], n: 1, task: 'cafe', st }); toast('Apporte-le à Gérard', PAL.yellow); }), { when: () => !task('cafe').done && !G.carry }),

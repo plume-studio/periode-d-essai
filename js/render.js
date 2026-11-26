@@ -97,7 +97,7 @@ function worldOverlay(g) {
   World.ents.forEach(e => {
     if (e.hidden || e.id === 'player') return;
     if (!(e.guard || nearSneaky || (G.hold && G.hold.it.sneaky))) return;
-    const a = e.lookAng != null ? e.lookAng : DIRANG[e.dir], r = e.guard ? 4.4 * T : 5.5 * T, half = e.guard ? .5 : .75;
+    const a = e.lookAng != null ? e.lookAng : DIRANG[e.dir], r = e.guard ? (e.vrange || 4.4) * T : (G.blackout ? 1.8 : 5.5) * T, half = e.guard ? .5 : .75;
     const grd = g.createRadialGradient(e.x, e.y - 12, 4, e.x, e.y - 12, r);
     grd.addColorStop(0, e.guard ? 'rgba(255,240,170,.38)' : 'rgba(255,90,80,.26)'); grd.addColorStop(1, 'rgba(255,90,80,0)');
     g.fillStyle = grd; g.beginPath(); g.moveTo(e.x, e.y - 12);
@@ -116,7 +116,7 @@ function drawDarkness() {
   [[5.5, 21.5], [17.5, 12], [29, 12], [8.5, 9.5]].forEach(([x, y]) => hole(x * T, y * T, 110, .35));
   World.ents.forEach(e => {
     if (!e.guard || e.hidden) return; const a = e.lookAng != null ? e.lookAng : DIRANG[e.dir]; const [sx, sy] = S(e.x, e.y - 12);
-    const r = 4.6 * T * WS; const gr = g.createRadialGradient(sx, sy, 0, sx, sy, r); gr.addColorStop(0, 'rgba(0,0,0,.95)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    const r = ((e.vrange || 4.4) + .2) * T * WS; const gr = g.createRadialGradient(sx, sy, 0, sx, sy, r); gr.addColorStop(0, 'rgba(0,0,0,.95)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr; g.beginPath(); g.moveTo(sx, sy); g.arc(sx, sy, r, a - .5, a + .5); g.closePath(); g.fill(); hole(e.x, e.y - 14, 50, .7);
   });
   g.globalCompositeOperation = 'source-over'; ctx.drawImage(c, 0, 0);

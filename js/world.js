@@ -68,13 +68,13 @@ function placeFurniture() {
   [[2, 'josiane'], [6, 'patrick'], [10, 'kevin']].forEach(([x, who]) => {
     place('office_chair_front', x + .5, 3, { solid: false, sort: -12 });
     place('office_desk_back', x, 4, { id: 'desk_' + who });
-    place('computer_front', x + .5, 4, { lift: DESK_LIFT, solid: false, id: 'pc_' + who });
+    place('computer_back', x + .5, 4, { lift: DESK_LIFT, solid: false, id: 'pc_' + who });
   });
-  place('coffee_mug_front', 3.4, 4, { lift: DESK_LIFT, solid: false }); place('paper_stack_front', 6, 4, { lift: DESK_LIFT, solid: false });
+  place('coffee_mug_back', 3.4, 4, { lift: DESK_LIFT, solid: false }); place('paper_stack_back', 6, 4, { lift: DESK_LIFT, solid: false });
   // rangée B (on voit leur dos) : TOI, (vide), Gérard
   [[2, 'player'], [6, 'vide'], [10, 'gerard']].forEach(([x, who]) => {
     place('office_desk_front', x, 6, { id: 'desk_' + who });
-    place('computer_back', x + .5, 6, { lift: DESK_LIFT, solid: false, id: 'pc_' + who });
+    place('computer_front', x + .5, 6, { lift: DESK_LIFT, solid: false, id: 'pc_' + who });
     place('office_chair_back', x + .5, 7, { solid: false, sort: 4 });
   });
   place('coffee_mug_back', 2.1, 6, { lift: DESK_LIFT, solid: false }); place('paper_stack_back', 11.1, 6, { lift: DESK_LIFT, solid: false });
@@ -94,7 +94,7 @@ function placeFurniture() {
   // --- Bureau du directeur ---
   place('office_chair_front', 31.5, 3, { solid: false, sort: -12 });
   place('office_desk_back', 31, 4, { id: 'desk_boss' });
-  place('laptop_front', 32.05, 4, { lift: DESK_LIFT, solid: false }); place('desk_lamp_front', 30.95, 4, { lift: DESK_LIFT, solid: false, dy: -2 });
+  place('laptop_back', 32.05, 4, { lift: DESK_LIFT, solid: false }); place('desk_lamp_front', 30.95, 4, { lift: DESK_LIFT, solid: false, dy: -2 });
   placeC('safe', 29.5 * T, 3 * T, { id: 'safe', solid: [[29, 2]] });
   place('filing_cabinet_front', 33, 2); place('filing_cabinet_front', 34, 2);
   place('office_plant_front', 34, 8, { id: 'bossPlant' }); place('tall_plant_front', 29, 8);
@@ -106,7 +106,7 @@ function placeFurniture() {
   // --- Accueil ---
   place('office_chair_front', 6, 16, { solid: false, sort: -12 });
   place('office_desk_back', 4, 17, { id: 'desk_brochard' }); place('office_desk_back', 6, 17, { id: 'desk_brochard2' });
-  place('laptop_front', 5.4, 17, { lift: DESK_LIFT, solid: false }); placeC('phone', 7.3 * T, 17 * T + 18, { lift: DESK_LIFT, id: 'phone' });
+  place('laptop_back', 5.4, 17, { lift: DESK_LIFT, solid: false }); placeC('phone', 7.3 * T, 17 * T + 18, { lift: DESK_LIFT, id: 'phone' });
   place('paper_stack_front', 3.9, 17, { lift: DESK_LIFT, solid: false, id: 'mail' });
   place('office_plant_front', 1, 15); place('tall_plant_front', 11, 15); place('office_plant_front', 1, 21); place('tall_plant_front', 11, 21);
   place('office_chair_front', 9, 19, { solid: false }); place('office_chair_front', 10, 19, { solid: false });
@@ -185,12 +185,12 @@ const CAST = {
 };
 // postes (pieds, en tuiles) et direction
 const SPOTS = {
-  josiane: [3, 3.7, 'down'], patrick: [7, 3.7, 'down'], kevin: [11, 3.7, 'down'], gerard: [11, 7.45, 'up'], player: [3, 7.45, 'up'],
+  josiane: [3, 3.7, 'down'], patrick: [7, 3.7, 'down'], kevin: [11, 3.7, 'down'], gerard: [11, 7.08, 'up'], player: [3, 7.08, 'up'],
   gribouille: [32, 3.7, 'down'], brochard: [6.5, 16.7, 'down'],
   cooler1: [18.6, 16.6, 'right'], cooler2: [20.4, 16.6, 'left'], coffee: [14.5, 16.7, 'up'],
-  meetT1: [22.5, 3.7, 'down'], meetT2: [23.5, 3.7, 'down'], meetT3: [24.5, 3.7, 'down'], meetB1: [22.5, 6.45, 'up'], meetB2: [23.5, 6.45, 'up'], meetB3: [24.5, 6.45, 'up'],
+  meetT1: [22.5, 3.7, 'down'], meetT2: [23.5, 3.7, 'down'], meetT3: [24.5, 3.7, 'down'], meetB1: [22.5, 6.08, 'up'], meetB2: [23.5, 6.08, 'up'], meetB3: [24.5, 6.08, 'up'],
   meetL: [21.5, 5.4, 'right'], meetR: [25.5, 5.4, 'left'], flip: [20.2, 6.4, 'right'],
-  pauseT1: [17.5, 17.7, 'down'], pauseT2: [18.5, 17.7, 'down'], pauseT3: [19.5, 17.7, 'down'], pauseB1: [17.5, 20.45, 'up'], pauseB2: [18.5, 20.45, 'up'], pauseB3: [19.5, 20.45, 'up'],
+  pauseT1: [17.5, 17.7, 'down'], pauseT2: [18.5, 17.7, 'down'], pauseT3: [19.5, 17.7, 'down'], pauseB1: [17.5, 20.08, 'up'], pauseB2: [18.5, 20.08, 'up'], pauseB3: [19.5, 20.08, 'up'],
   pauseL: [15.5, 19, 'right'], pauseR: [21.5, 19, 'left'],
   resDoor: [29, 12.2, 'down'], resIn1: [29.5, 16.7, 'down'], resIn2: [30.5, 19.5, 'left'], resIn3: [28.5, 17.5, 'right'],
   copier: [16.5, 6.6, 'up'], exit: [5.5, 22.6, 'down'], entry: [5.5, 21.2, 'up'], hallW: [4, 11.6, 'down'], hallE: [30, 11.6, 'down'], hallM: [17, 11.6, 'down'],
@@ -291,7 +291,7 @@ function drawWorld(g, extra) {
   World.decals.forEach(d => d.draw(g));
   const list = [];
   World.props.forEach(p => { if (!p.hidden) list.push({ y: p.sortY, p }); });
-  World.ents.forEach(e => { if (!e.hidden) list.push({ y: e.y + (e.id === 'player' ? 24 : 0), e }); });
+  World.ents.forEach(e => { if (!e.hidden) list.push({ y: e.y + (e.id === 'player' && !G.sitting ? 24 : 0), e }); });
   if (World.showTipped) list.push({ y: 19 * T + 30, fn: drawTipped });
   list.sort((a, b) => a.y - b.y);
   for (const it of list) {

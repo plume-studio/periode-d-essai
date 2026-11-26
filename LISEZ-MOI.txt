@@ -7,6 +7,7 @@ COMMANDES
   ZQSD ou flèches : se déplacer
   E ou Espace     : agir / parler / valider
   TAB             : carnet d'enquête
+  T               : replier / déplier la liste des tâches
   Échap           : pause
   M               : couper le son
 
@@ -16,7 +17,8 @@ PRINCIPE
   et fouille en douce pour découvrir qui a tué Bernard.
   Cônes rouges = regards des collègues. Le soir, évite la lampe du vigile.
   Vendredi 16h : accuse le coupable avec les bonnes preuves.
-  Il y a une fin cachée…
+  Parle aux collègues et montre-leur tes indices : leurs réactions en révèlent d'autres.
+  Tes choix (Patrick, Josiane, le patron) changent la fin. Il y a 4 fins, dont une cachée.
 
 Graphismes : « Office Pixel Art » by Imersa Studios
 https://imersastudios.itch.io/office-pixel-art
