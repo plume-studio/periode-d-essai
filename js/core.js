@@ -17,7 +17,7 @@ const KMAP = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
   ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
   KeyE: 'act', Space: 'act', Enter: 'ok', Tab: 'book', KeyC: 'book',
-  Escape: 'esc', KeyP: 'esc', KeyM: 'mute', Backspace: 'back'
+  Escape: 'esc', KeyP: 'esc', KeyT: 'tasks', KeyM: 'mute', Backspace: 'back'
 };
 addEventListener('keydown', e => {
   if (window.SPLASH) { if (KMAP[e.code]) e.preventDefault(); return; }

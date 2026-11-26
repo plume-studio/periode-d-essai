@@ -142,7 +142,7 @@ function drawHUD() {
   const g = ctx, list = G.tasks.filter(t => !t.hidden || (typeof t.hidden === 'function' && !t.hidden()));
   // fondu si le joueur passe dessous
   const pp = player(); let fadeL = 1, fadeR = 1;
-  if (pp) { const [sx, sy] = toScreen(pp.x, pp.y); if (sx < 360 && sy < 170 + list.length * 32 + 60) fadeL = .28; if (sx > W - 360 && sy < 150) fadeR = .28; }
+  if (pp) { const [sx, sy] = toScreen(pp.x, pp.y); if (sx < 330 && sy < (G.tasksMin ? 200 : 190 + list.filter(t => !t.done).length * 30 + 50)) fadeL = .25; if (sx > W - 360 && sy < 150) fadeR = .28; }
   G.hudL = lerp(G.hudL || 1, fadeL, .15); G.hudR = lerp(G.hudR || 1, fadeR, .15);
   g.save(); g.globalAlpha = G.hudL;
   // carte jour / heure
@@ -153,25 +153,30 @@ function drawHUD() {
   rr(g, 40, 80, gw, 22, 11); g.strokeStyle = 'rgba(255,255,255,.28)'; g.lineWidth = 1.5; g.stroke(); tx(g, gr, 49, 95, { size: 11, col: '#d8d1e2', ls: 1.5 });
   tx(g, 'JOUR ' + G.day + '/5', 302, 95, { f: 'mono', size: 11, col: UI.mute, align: 'right', ls: 1 });
   if (!G.night) { g.fillStyle = 'rgba(255,255,255,.09)'; g.fillRect(40, 114, 262, 3); g.fillStyle = UI.acc; g.fillRect(40, 114, 262 * clamp((G.time - 540) / 540, 0, 1), 3); }
-  // liste
-  const by = 142, bh = 48 + list.length * 32; panelBox(g, 20, by, 300, bh);
+  // liste compacte : seulement ce qui reste à faire (T pour replier)
+  const by = 140, todo = list.filter(t => !t.done || (t.doneAt && TT - t.doneAt < 1.6));
+  list.forEach(t => { if (t.done && !t.doneAt) t.doneAt = TT; });
   const nd = list.filter(t => t.done).length;
-  tx(g, G.night ? 'CE SOIR' : 'À FAIRE', 40, by + 28, { f: 'mono', size: 12, col: UI.mute, ls: 3 });
-  tx(g, nd + '/' + list.length, 302, by + 28, { f: 'mono', size: 12, col: UI.mute, align: 'right', ls: 1 });
-  g.fillStyle = UI.line; g.fillRect(40, by + 38, 262, 1);
-  let y = by + 48;
-  list.forEach(t => {
-    const late = t.from && G.time < t.from, a = t.done || t.failed ? .5 : late ? .62 : 1; g.globalAlpha = G.hudL * a;
-    // case à cocher
-    if (t.clue) { g.save(); g.translate(47, y + 15); g.rotate(Math.PI / 4); g.fillStyle = t.done ? UI.vio : 'transparent'; g.strokeStyle = UI.vio; g.lineWidth = 2; g.fillRect(-6, -6, 12, 12); g.strokeRect(-6, -6, 12, 12); g.restore(); }
-    else { rr(g, 39, y + 7, 16, 16, 4); if (t.done) { g.fillStyle = UI.acc; g.fill(); g.strokeStyle = UI.ink; g.lineWidth = 2.5; g.beginPath(); g.moveTo(43, y + 15); g.lineTo(46, y + 19); g.lineTo(52, y + 11); g.stroke(); } else { g.strokeStyle = t.failed ? UI.red : 'rgba(255,255,255,.5)'; g.lineWidth = 2; g.stroke(); } }
-    drawIcon(g, t.icon, 64, y + 5, 20);
-    let lab = t.label + (t.count ? '  ' + (t.prog || 0) + '/' + t.count : '');
-    const lw = tx(g, lab, 94, y + 21, { size: 15, w: 500, col: t.failed ? '#ff8f84' : t.clue ? '#d9cbff' : UI.text });
-    if (t.done) { g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(94, y + 15, lw, 1.5); }
-    if (late) { const s = fmtTime(t.from).replace('h', ':'), sw = tw(g, s, { f: 'mono', size: 11 }) + 12; rr(g, 302 - sw, y + 6, sw, 19, 5); g.fillStyle = 'rgba(255,255,255,.1)'; g.fill(); tx(g, s, 302 - sw / 2, y + 20, { f: 'mono', size: 11, col: UI.acc, align: 'center' }); }
-    y += 32;
-  });
+  const head = (G.night ? 'CE SOIR' : 'À FAIRE') + '  ' + nd + '/' + list.length;
+  const hw = tw(g, head, { f: 'mono', size: 11, ls: 2 }) + 58;
+  rr(g, 20, by, hw, 24, 12); g.fillStyle = 'rgba(15,13,21,.72)'; g.fill();
+  tx(g, head, 34, by + 16, { f: 'mono', size: 11, col: UI.mute, ls: 2 });
+  keycap(g, 'T', 20 + hw - 26, by + 3, 20, 20);
+  if (!G.tasksMin) {
+    let y = by + 30;
+    todo.forEach(t => {
+      const late = t.from && G.time < t.from, a = t.done ? clamp(1.6 - (TT - t.doneAt), 0, 1) * .8 : t.failed ? .5 : late ? .6 : 1; g.globalAlpha = G.hudL * a;
+      const lab = t.label + (t.count ? '  ' + (t.prog || 0) + '/' + t.count : ''), timeS = late ? fmtTime(t.from).replace('h', ':') : '';
+      const w = tw(g, lab, { size: 14, w: 500 }) + 58 + (late ? tw(g, timeS, { f: 'mono', size: 10 }) + 16 : 0);
+      rr(g, 20, y, w, 26, 13); g.fillStyle = 'rgba(15,13,21,.62)'; g.fill();
+      g.fillStyle = t.clue ? UI.vio : t.failed ? UI.red : UI.acc; g.beginPath(); g.arc(33, y + 13, 3.5, 0, 7); g.fill();
+      drawIcon(g, t.icon, 42, y + 5, 16);
+      const lw = tx(g, lab, 64, y + 18, { size: 14, w: 500, col: t.failed ? '#ff8f84' : t.clue ? '#d9cbff' : UI.text });
+      if (t.done) { g.fillStyle = UI.acc; g.fillRect(64, y + 13, lw, 1.5); }
+      if (late) tx(g, timeS, 64 + lw + 10, y + 17, { f: 'mono', size: 10, col: UI.acc });
+      y += 30;
+    });
+  }
   g.restore();
   // stats à droite
   g.save(); g.globalAlpha = G.hudR;

@@ -158,6 +158,7 @@ function updatePlay(dt) {
   const p = player(), D = DAYS[G.day];
   if (hit('esc')) { G.state = 'pause'; G.menu = 0; return; }
   if (hit('book')) { G.state = 'book'; G.bookSel = 0; return; }
+  if (hit('tasks')) { G.tasksMin = !G.tasksMin; Sound.play('blip'); }
   // temps
   if (!G.night) {
     const allDone = G.tasks.filter(t => t.req && !t.done).length === 0;
