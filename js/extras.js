@@ -152,7 +152,7 @@ function addDayExtras() {
   // conséquences : Josiane virée si dénoncée
   [D4, D5].forEach(D => { const s = D.setup; D.setup = function () { s && s(); if (G.flags.coverJ === false) { const e = getEnt('josiane'); if (e) { e.hidden = true; e.lock = true; } } }; });
   // conséquence : refus du marché → vigile plus rapide
-  const N4 = D4.night, ns = N4.setup; N4.setup = function () { ns && ns(); if (G.flags.deal === false) { const v = getEnt('vigile2'); if (v) v.speed = 48; } };
+  const N4 = D4.night, ns = N4.setup; N4.setup = function () { ns && ns(); if (G.flags.deal === false) { const v = getEnt('vigile2'); if (v) v.speed = 38; } };
 }
 function spawnPigeon() {
   const e = entAtSpot('pigeon', 'hallM'); e.lock = true; e.pigeon = true; e.speed = 40; e.hp = 0; Sound.play('blip');

@@ -331,8 +331,8 @@ DAYS[4] = {
     intro: [{ card: ['JEUDI SOIR', 'Avec le passe, le bureau du patron s\'ouvre…'] }, { card: ['ATTENTION', 'Deux vigiles, plus rapides'], dur: 2.2 }],
     setup() { setDoor('dir', true); },
     guards: [
-      { id: 'vigile', route: ['hallE2', 'dirDoorS', 'hallMid2', 'meetDoor', 'hallM', 'hallMid2'], speed: 54 },
-      { id: 'vigile2', route: ['dirN', 'dirN2'], speed: 34 }],
+      { id: 'vigile', route: ['hallE2', 'dirDoorS', 'hallMid2', 'meetDoor', 'hallM', 'hallMid2'], speed: 40, vrange: 3.8 },
+      { id: 'vigile2', route: ['dirN', 'dirDoorS', 'hallE2', 'dirDoorS'], speed: 30, vrange: 3.4 }],
     tasks: [
       { id: 'porte', icon: 'key', label: 'Ouvrir chez le patron', req: true, target: () => P(31.5, 11.5) },
       { id: 'bureauP', icon: 'search', label: 'Fouiller son bureau', req: true, clue: true, target: () => P(32, 3.4) },

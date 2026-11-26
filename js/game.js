@@ -7,7 +7,7 @@ const fmtTime = m => String(Math.floor(m / 60)).padStart(2, '0') + 'h' + String(
 const hm = (h, m = 0) => h * 60 + m;
 
 // ---------- Sauvegarde ----------
-function save() { try { localStorage.setItem('lenouveau_save', JSON.stringify({ day: G.day, rep: G.rep, clues: G.clues, flags: G.flags })); } catch (e) { } }
+function save(night) { try { localStorage.setItem('lenouveau_save', JSON.stringify({ day: G.day, rep: G.rep, clues: G.clues, flags: G.flags, night: !!night })); } catch (e) { } }
 function loadSave() { try { return JSON.parse(localStorage.getItem('lenouveau_save')); } catch (e) { return null; } }
 
 // ---------- API pour l'histoire ----------
@@ -50,6 +50,7 @@ function restartDay() { const s = JSON.parse(G.snap); G.rep = s.rep; G.clues = s
 function startNight() {
   const N = DAYS[G.day].night; G.night = true; World.night = true; G.susp = 0; G.fadeTarget = 0; G.caught = false; G.camTarget = null; G.carry = null; G.hold = null;
   G.nsnap = JSON.stringify({ clues: G.clues, flags: G.flags, rep: G.rep });
+  save(true);
   buildMap(); World.ents = []; World.decals = [];
   G.tasks = N.tasks.map(t => Object.assign({ done: false, stars: 0 }, t));
   entAtSpot('player', N.start || 'player');
@@ -60,7 +61,7 @@ function startNight() {
   Sound.music('night');
   runCut(N.intro || [{ card: ['HEURES SUP\'', 'Ne te fais pas voir par le vigile'] }], () => G.state = 'play');
 }
-function restartNight() { const s = JSON.parse(G.nsnap); G.clues = s.clues; G.flags = s.flags; G.rep = s.rep; startNight(); G.cut = null; G.state = 'play'; }
+function restartNight() { G.nightAlert = 0; const s = JSON.parse(G.nsnap); G.clues = s.clues; G.flags = s.flags; G.rep = s.rep; startNight(); G.cut = null; G.state = 'play'; }
 function endDay() {
   G.state = 'report'; G.reportT = 0; Sound.play('win');
 }
@@ -207,8 +208,10 @@ function updatePlay(dt) {
     if (G.susp >= 100) { fired('Trop curieux. On t\'a vu fouiner.'); return; }
   } else {
     // nuit : repéré par un vigile
-    const s = World.ents.find(e => e.guard && canSee(e, p.x, p.y, (e.vrange || 4.4) * T, .5));
-    if (s) { s.bubble = '!'; s.bubbleT = 1; Sound.play('spotted'); G.state = 'fired'; G.firedReason = s.id === 'nadia' ? 'Nadia t\'a vu. Elle a appelé le vigile.' : 'Le vigile t\'a repéré !'; G.caught = true; return; }
+    const seen = World.ents.find(e => e.guard && canSee(e, p.x, p.y, (e.vrange || 4.4) * T, .5));
+    if (seen) { G.nightAlert = (G.nightAlert || 0) + dt; if (!seen.bubble) { seen.bubble = '?'; seen.bubbleT = .6; Sound.play('blip'); } } else G.nightAlert = Math.max(0, (G.nightAlert || 0) - dt * .6);
+    const s = G.nightAlert > .75 ? seen : null;
+    if (s) { G.nightAlert = 0; s.bubble = '!'; s.bubbleT = 1; Sound.play('spotted'); G.state = 'fired'; G.firedReason = s.id === 'nadia' ? 'Nadia t\'a vu. Elle a appelé le vigile.' : 'Le vigile t\'a repéré !'; G.caught = true; return; }
   }
   // sortie
   if (p.y > 22.3 * T) {
@@ -271,7 +274,7 @@ function updateTitle(dt) {
   if (hit('act')) {
     Sound.unlock(); const opts = sv ? ['cont', 'new', 'cred'] : ['new', 'cred']; const o = opts[G.menu];
     if (o === 'new') { G.rep = 0; G.clues = []; G.flags = {}; G.accuse = null; G.nightDone = false; startDay(1); }
-    else if (o === 'cont') { G.nightDone = false; G.rep = sv.rep; G.clues = sv.clues; G.flags = sv.flags; G.accuse = null; startDay(sv.day); }
+    else if (o === 'cont') { G.nightDone = false; G.rep = sv.rep; G.clues = sv.clues; G.flags = sv.flags; G.accuse = null; if (sv.night) { G.day = sv.day; G.nightDone = true; startNight(); } else startDay(sv.day); }
     else { G.state = 'end'; G.endKind = 'credits'; G.endT = 0; }
   }
 }

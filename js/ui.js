@@ -363,7 +363,7 @@ function drawTitle() {
   stamp(g, 'CONFIDENTIEL', 560, 300, { size: 30, rot: -.17, alpha: .75 });
   tx(g, 'Survivre à la semaine.', 98, 446, { f: 'type', size: 26, col: '#e9e1d2' });
   // menu
-  const sv = loadSave(); const opts = sv ? ['Continuer · ' + DAYNAMES[sv.day - 1].toLowerCase(), 'Nouvelle partie', 'Crédits'] : ['Nouvelle partie', 'Crédits'];
+  const sv = loadSave(); const opts = sv ? ['Continuer · ' + DAYNAMES[sv.day - 1].toLowerCase() + (sv.night ? ' soir' : ''), 'Nouvelle partie', 'Crédits'] : ['Nouvelle partie', 'Crédits'];
   G.mY = lerp(G.mY == null ? G.menu : G.mY, G.menu, .22);
   const my = 486;
   const selW = tw(g, opts[G.menu].toUpperCase(), { size: 26, ls: 3 }) + 96;
