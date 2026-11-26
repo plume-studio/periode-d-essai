@@ -71,7 +71,8 @@ function draw() {
   if (World.night) drawDarkness();
   ctx.drawImage(FX.vig, 0, 0);
   drawWorldUI(true);
-  if (G.state !== 'accuse' && !(G.state === 'cut' && (G.cardShow || G.accuse))) drawHUD();
+  G.hudIn = lerp(G.hudIn || 0, G.state === 'cut' || G.state === 'accuse' ? 0 : 1, .12);
+  if (G.hudIn > .02) { ctx.save(); ctx.globalAlpha = G.hudIn; drawHUD(); ctx.restore(); }
   drawWorldUI(false);
   if (G.state === 'cut' && !G.cardShow) drawLetterbox(1);
   if (G.cardShow) drawCard();

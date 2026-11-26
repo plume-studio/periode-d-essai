@@ -94,7 +94,7 @@ function placeFurniture() {
   // --- Bureau du directeur ---
   place('office_chair_front', 31.5, 3, { solid: false, sort: -12 });
   place('office_desk_back', 31, 4, { id: 'desk_boss' });
-  place('laptop_front', 31.6, 4, { lift: DESK_LIFT, solid: false });
+  place('laptop_front', 32.05, 4, { lift: DESK_LIFT, solid: false }); place('desk_lamp_front', 30.95, 4, { lift: DESK_LIFT, solid: false, dy: -2 });
   placeC('safe', 29.5 * T, 3 * T, { id: 'safe', solid: [[29, 2]] });
   place('filing_cabinet_front', 33, 2); place('filing_cabinet_front', 34, 2);
   place('office_plant_front', 34, 8, { id: 'bossPlant' }); place('tall_plant_front', 29, 8);

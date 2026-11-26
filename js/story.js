@@ -136,10 +136,11 @@ DAYS[1] = {
     { id: 'classement', icon: 'folder', label: 'Classer les dossiers', req: true, target: () => P(15.5, 3.4) },
     { id: 'reunion', icon: 'meet', label: 'Réunion', req: true, from: hm(15), until: hm(15, 35), target: () => P(22.5, 3.7) },
     { id: 'tiroir', icon: 'search', label: 'Tiroir de Bernard', req: true, clue: true, target: T_DESK },
-    { id: 'ragot', icon: 'ear', label: 'Écouter les ragots', req: true, clue: true, from: hm(11), target: () => chatting('josiane', 'patrick') ? P(19.5, 16.6) : null }
+    { id: 'ragot', icon: 'ear', label: 'Écouter les ragots', req: true, clue: true, from: hm(11), target: () => chatting('josiane', 'patrick') ? P(19.5, 17.7) : null }
   ],
   tick: coolerChat([['josiane', 'Tu sais pour Bernard ?'], ['patrick', 'Il posait trop de questions.'], ['josiane', 'Sur les factures…'], ['patrick', 'Chut. Le nouveau.']]),
   interacts() {
+    if (chatting('josiane', 'patrick') && !task('ragot').done && !G.flags.tipRagot) { const p = player(); if (p && Math.hypot(p.x - 19.5 * T, p.y - 16.6 * T) < 3 * T) { G.flags.tipRagot = true; toast('Glisse-toi derrière eux, côté table', '#c9a8ff'); } }
     return [
       pickCarry('courrier', 4.5, 18.6, 'Prendre le courrier', { icon: 'mail', to: ['josiane', 'patrick', 'kevin', 'gerard'], n: 4 }),
       it(14.5, 16.6, 'Faire le café', () => startMG('cafe', { cups: ['moyen'] }, st => { setCarry({ icon: 'coffee', to: ['gerard'], n: 1, task: 'cafe', st }); toast('Apporte-le à Gérard', PAL.yellow); }), { when: () => !task('cafe').done && !G.carry }),
@@ -147,7 +148,7 @@ DAYS[1] = {
       mgTask('classement', 15.5, 3.4, 'Classer', 'classement', { n: 12, speed: 1 }),
       mgTask('reunion', 22.5, 3.7, 'S\'asseoir', 'reunion', { dur: 35, speaker: 'gerard', rate: .09 }),
       clueMG('tiroir', 3, 7.3, 'Crocheter le tiroir', 'crochet', { pins: 3, speed: 1 }, ['postit', 'facture']),
-      it(19.5, 16.8, 'Écouter', () => { giveClue('ragot'); doneTask('ragot'); }, { hold: 6, sneaky: true, range: 3.2 * T, half: .45, r: 56, when: () => !task('ragot').done && chatting('josiane', 'patrick') }),
+      it(19.5, 17.7, 'Écouter en douce', () => { giveClue('ragot'); doneTask('ragot'); }, { hold: 5, sneaky: true, range: 3 * T, half: .4, r: 44, when: () => !task('ragot').done && chatting('josiane', 'patrick') }),
       ...talkAll()
     ];
   },

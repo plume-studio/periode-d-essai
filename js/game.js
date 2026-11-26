@@ -97,6 +97,7 @@ function applySchedules(instant) {
 // regards qui bougent (pour l'infiltration)
 function updateGaze(e, dt) {
   if (e.guard || e.moving || e.hidden) { e.lookAng = null; return; }
+  if ((e.spot || '').startsWith('cooler')) { e.lookOff = 0; e.lookAng = DIRANG[e.dir]; return; }
   e.gazeT = (e.gazeT || rnd(2, 5)) - dt;
   if (e.gazeT <= 0) { e.gazeT = rnd(2.5, 6); e.lookOff = Math.random() < .55 ? 0 : rnd(-.9, .9); }
   e.lookAng = DIRANG[e.dir] + (e.lookOff || 0);
