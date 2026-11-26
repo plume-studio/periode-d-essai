@@ -19,7 +19,7 @@ function hasClue(id) { return G.clues.includes(id); }
 function task(id) { return G.tasks.find(t => t.id === id); }
 function doneTask(id, st = 3) { const t = task(id); if (!t || t.done) return; t.done = true; t.stars = st; G.rep += st * 10 + (t.clue ? 15 : 0); if (!t.clue) G.dayStars.push(st); Sound.play('ok'); toast((t.clue ? '🔎 ' : '✔ ') + t.label, t.clue ? '#c9a8ff' : PAL.yellow); checkAllDone(); }
 function checkAllDone() {
-  if (!G.night && G.tasks.filter(t => t.req && !t.done).length === 0 && !G.flags['alldone' + G.day]) { G.flags['alldone' + G.day] = true; toast('Journée bouclée ! Sors par l\'accueil.', PAL.green); }
+  if (!G.night && G.tasks.filter(t => t.req && !t.done && !t.failed).length === 0 && !G.flags['alldone' + G.day]) { G.flags['alldone' + G.day] = true; toast('Journée bouclée ! Sors par l\'accueil.', PAL.green); }
   if (G.night && G.tasks.filter(t => t.req && !t.done).length === 0 && !G.flags['nightdone' + G.day]) { G.flags['nightdone' + G.day] = true; toast('C\'est bon. Sors par l\'accueil.', PAL.green); }
 }
 function startMG(kind, params, onWin, opt = {}) {
@@ -27,7 +27,7 @@ function startMG(kind, params, onWin, opt = {}) {
   G.mg = MINIGAMES[kind](params); G.mg.onWin = onWin; G.mg.onLose = opt.onLose; G.mg.retry = opt.retry !== false; G.mg.kind = kind; G.mg.params = params; G.mg.opt = opt;
   G.state = 'mini'; clearPressed(); Sound.play('blip');
 }
-function seenBySomeone(range, half) { const p = player(); let s = null; World.ents.forEach(e => { if (e.id !== 'player' && !e.hidden && canSee(e, p.x, p.y, range, half)) s = e; }); return s; }
+function seenBySomeone(range, half) { const p = player(); let s = null; World.ents.forEach(e => { if (e.id !== 'player' && !e.hidden && !e.pigeon && canSee(e, p.x, p.y, range, half)) s = e; }); return s; }
 function busted() { const e = seenBySomeone(); if (e) { e.bubble = '?!'; e.bubbleT = 1.2; } G.susp = Math.min(100, G.susp + 34); Sound.play('spotted'); toast('On te regarde !', '#ff7a6e'); }
 function runCut(steps, onEnd) { G.cut = { steps: steps.slice(), i: -1, t: 0, onEnd, wait: null }; G.state = 'cut'; nextCutStep(); }
 function setCarry(c) { G.carry = c; }
@@ -54,6 +54,7 @@ function startNight() {
   G.tasks = N.tasks.map(t => Object.assign({ done: false, stars: 0 }, t));
   entAtSpot('player', N.start || 'player');
   N.guards.forEach(gd => { const e = entAtSpot(gd.id, gd.route[0]); e.route = gd.route; e.ri = 0; e.speed = gd.speed || 46; e.wait = 0; e.guard = true; e.vrange = gd.vrange; });
+  if (G.day >= 2) { World.showTipped = true; tapeDecal(); }
   DAYS[G.day].setupWorld && DAYS[G.day].setupWorld();
   N.setup && N.setup();
   Sound.music('night');
@@ -114,7 +115,7 @@ function nearestInteract() {
   for (const it of G.interacts) {
     if (it.when && !it.when()) continue;
     let x = it.x, y = it.y; if (it.ent) { const e = getEnt(it.ent); if (!e || e.hidden) continue; x = e.x; y = e.y - 6; }
-    const d = Math.hypot(p.x - x, p.y - y); if (d < (it.r || 46) && d < bd) { bd = d; best = it; }
+    const d = Math.hypot(p.x - x, p.y - y), sc = d - (it.ent ? 12 : 0); if (d < (it.r || 46) && sc < bd) { bd = sc; best = it; }
   }
   return best;
 }
@@ -160,9 +161,12 @@ function updatePlay(dt) {
   if (hit('esc')) { G.state = 'pause'; G.menu = 0; return; }
   if (hit('book')) { G.state = 'book'; G.bookSel = 0; return; }
   if (hit('tasks')) { G.tasksMin = !G.tasksMin; Sound.play('blip'); }
+  if ((hit('back') || hit('drop')) && G.carry) { if (G.carry.task === 'cartons') { const c = World.cartons.find(c => c.hidden); if (c) c.hidden = false; }
+    if (G.carry.task === 'pot') { if (G.carry.icon === 'cake') G.flags.potCake = false; if (G.carry.icon === 'party') G.flags.potBan = false; if (G.carry.icon === 'copy') G.flags.potCups = false; }
+    G.carry = null; Sound.play('paper'); toast('Objet reposé (à refaire plus tard)'); }
   // temps
   if (!G.night) {
-    const allDone = G.tasks.filter(t => t.req && !t.done).length === 0;
+    const allDone = G.tasks.filter(t => t.req && !t.done && !t.failed).length === 0;
     G.time += dt * (allDone ? 4 : 1) * (G.sitting ? 5 : 1);
     (D.events || []).forEach(ev => { if (!ev.fired && G.time >= ev.at) { ev.fired = true; ev.fn(); } });
     G.tasks.forEach(t => { if (t.until && !t.done && !t.failed && G.time > t.until) { t.failed = true; G.warnings++; Sound.play('alarm'); toast('Raté : ' + t.label + ' — avertissement ' + G.warnings + '/3', '#ff7a6e'); if (G.warnings >= 3) fired('Trois avertissements.'); } });
@@ -209,7 +213,7 @@ function updatePlay(dt) {
   // sortie
   if (p.y > 22.3 * T) {
     if (G.night) { if (G.tasks.filter(t => t.req && !t.done).length === 0) { finishNight(); return; } else { p.y = 22.2 * T; if (!G.exitMsg) { toast('Pas avant d\'avoir fini !', '#ff7a6e'); G.exitMsg = 2; } } }
-    else if (G.tasks.filter(t => t.req && !t.done).length === 0) { endDay(); return; }
+    else if (G.tasks.filter(t => t.req && !t.done && !t.failed).length === 0) { endDay(); return; }
     else { p.y = 22.2 * T; if (!G.exitMsg) { toast('Il reste du travail !', '#ff7a6e'); G.exitMsg = 2; } }
   }
   if (G.exitMsg) G.exitMsg = Math.max(0, G.exitMsg - dt);
@@ -227,7 +231,7 @@ function updateMini(dt) {
 function updatePause() {
   if (hit('esc')) { G.state = 'play'; return; }
   if (hit('up')) G.menu = (G.menu + 2) % 3; if (hit('down')) G.menu = (G.menu + 1) % 3;
-  if (hit('act')) { if (G.menu === 0) G.state = 'play'; else if (G.menu === 1) { const m = Sound.toggle(); toast(m ? 'Son coupé' : 'Son activé'); } else { G.state = 'title'; G.menu = 0; Sound.music(null); } }
+  if (hit('act')) { if (G.menu === 0) G.state = 'play'; else if (G.menu === 1) { const m = Sound.toggle(); toast(m ? 'Son coupé' : 'Son activé'); } else { G.state = 'title'; G.menu = 0; G.nightDone = false; Sound.music(null); } }
 }
 
 // ---------- Cinématiques ----------
@@ -267,7 +271,7 @@ function updateTitle(dt) {
   if (hit('act')) {
     Sound.unlock(); const opts = sv ? ['cont', 'new', 'cred'] : ['new', 'cred']; const o = opts[G.menu];
     if (o === 'new') { G.rep = 0; G.clues = []; G.flags = {}; G.accuse = null; G.nightDone = false; startDay(1); }
-    else if (o === 'cont') { G.rep = sv.rep; G.clues = sv.clues; G.flags = sv.flags; G.accuse = null; startDay(sv.day); }
+    else if (o === 'cont') { G.nightDone = false; G.rep = sv.rep; G.clues = sv.clues; G.flags = sv.flags; G.accuse = null; startDay(sv.day); }
     else { G.state = 'end'; G.endKind = 'credits'; G.endT = 0; }
   }
 }

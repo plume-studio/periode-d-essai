@@ -95,7 +95,7 @@ function worldOverlay(g) {
   const p = player(); if (!p) return;
   const nearSneaky = G.state === 'play' && G.interacts && G.interacts.some(it => it.sneaky && (!it.when || it.when()) && Math.hypot(p.x - (it.x || 0), p.y - (it.y || 0)) < 140);
   World.ents.forEach(e => {
-    if (e.hidden || e.id === 'player') return;
+    if (e.hidden || e.id === 'player' || e.pigeon) return;
     if (!(e.guard || nearSneaky || (G.hold && G.hold.it.sneaky))) return;
     const a = e.lookAng != null ? e.lookAng : DIRANG[e.dir], r = e.guard ? (e.vrange || 4.4) * T : (G.blackout ? 1.8 : 5.5) * T, half = e.guard ? .5 : .75;
     const grd = g.createRadialGradient(e.x, e.y - 12, 4, e.x, e.y - 12, r);

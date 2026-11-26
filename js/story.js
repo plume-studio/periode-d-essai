@@ -77,6 +77,7 @@ function entPos(id) { return () => { const e = getEnt(id); return e && !e.hidden
 function carryTarget(id, fallback) { return () => { if (G.carry && G.carry.task === id && G.carry.to && G.carry.to.length) { const e = getEnt(G.carry.to[0]); if (e && !e.hidden) return [e.x, e.y]; } return fallback; }; }
 function deskDecor() { setDoor('dir', false); setDoor('res', G.day < 2); }
 function tapeDecal() {
+  World.solidP[idx(30, 19)] = World.solidP[idx(31, 19)] = 1;
   World.decals.push({ draw(g) { g.save(); g.translate(29 * T + 16, 14 * T + 8); g.rotate(.5); g.fillStyle = PAL.yellow; g.fillRect(-26, -4, 52, 8); g.fillStyle = PAL.ink; for (let i = -24; i < 26; i += 10) g.fillRect(i, -4, 4, 8); g.restore(); } });
 }
 function chairsRow(list) { return list; }
@@ -297,7 +298,7 @@ DAYS[4] = {
     { id: 'pot', icon: 'party', label: 'Préparer le pot', req: true, count: 3, target: () => G.carry && G.carry.task === 'pot' ? P(18.5, 17.2) : !G.flags.potCake ? P(4.5, 18.6) : !G.flags.potBan ? P(33.5, 20.4) : P(15.5, 16.6) },
     { id: 'copies', icon: 'copy', label: '20 photocopies', req: true, target: () => P(16.5, 6.6) },
     { id: 'standard', icon: 'phone', label: 'Tenir l\'accueil', req: true, from: hm(12), until: hm(13), target: () => P(6.5, 16.7) },
-    { id: 'cafe', icon: 'coffee', label: '3 cafés', req: true, target: carryTarget('cafe', P(14.5, 16.6)) },
+    { id: 'cafe', icon: 'coffee', label: 'Les cafés', req: true, target: carryTarget('cafe', P(14.5, 16.6)) },
     { id: 'rouge', icon: 'lock', label: 'Tiroir de l\'accueil', req: true, clue: true, target: () => P(6.5, 16.7) },
     { id: 'diable', icon: 'search', label: 'Le chariot de l\'accueil', req: true, clue: true, target: () => P(10.5, 17.6) }
   ],
@@ -306,8 +307,8 @@ DAYS[4] = {
       mgTask('presentation', 20.2, 6.4, 'Présenter', 'saisie', { n: 30, speed: 1.3, slides: true, maxErr: 6 }),
       mgTask('copies', 16.5, 6.6, 'Photocopier', 'copie', { n: 20, speed: 1.6, zone: .13 }),
       mgTask('standard', 6.5, 16.7, 'Décrocher', 'standard', { len: 7 }, { when: () => !task('standard').done && !task('standard').failed && G.time >= hm(12) && !G.carry }),
-      it(14.5, 16.6, 'Faire les cafés', () => startMG('cafe', { cups: ['petit', 'moyen', 'allongé'], tight: .11 }, st => { setCarry({ icon: 'coffee', to: ['gerard', 'gribouille', 'josiane'], n: 3, task: 'cafe', st }); toast('Gérard, le patron et Josiane', PAL.yellow); }), { when: () => !task('cafe').done && !G.carry }),
-      clueMG('rouge', 6.5, 16.7, 'Crocheter le tiroir', 'crochet', { pins: 4, speed: 1.2 }, ['rouge'], { when: () => !task('rouge').done && !(G.time >= hm(12) && !task('standard').done) }),
+      it(14.5, 16.6, 'Faire les cafés', () => { const to = ['gerard', 'gribouille']; if (G.flags.coverJ !== false) to.push('josiane'); startMG('cafe', { cups: ['petit', 'moyen', 'allongé'].slice(0, to.length), tight: .11 }, st => { setCarry({ icon: 'coffee', to, n: to.length, task: 'cafe', st }); toast(to.length === 3 ? 'Gérard, le patron et Josiane' : 'Gérard et le patron', PAL.yellow); }); }, { when: () => !task('cafe').done && !G.carry }),
+      clueMG('rouge', 6.5, 16.7, 'Crocheter le tiroir', 'crochet', { pins: 4, speed: 1.2 }, ['rouge'], { when: () => !task('rouge').done && !(G.time >= hm(12) && G.time < hm(13) && !task('standard').done) }),
       clueHold('diable', 10.5, 17.6, 'Examiner le chariot', ['diable'], 2.5),
       // le pot
       it(4.5, 18.6, 'Prendre le gâteau', () => { setCarry({ icon: 'cake', task: 'pot' }); G.flags.potCake = true; }, { when: () => !G.carry && !G.flags.potCake }),
@@ -384,6 +385,7 @@ DAYS[5] = {
 
 // =================== ACCUSATION FINALE ===================
 const SUSPECTS = ['gerard', 'josiane', 'kevin', 'patrick', 'brochard', 'gribouille'];
+const sus = () => SUSPECTS.filter(s => !(s === 'josiane' && G.flags.coverJ === false));
 const ALIBI = { gerard: ['agenda', 'J\'étais au squash !'], josiane: ['noteJ', 'C\'est MOI qui ai prévenu Bernard !'], kevin: ['badges', 'J\'ai badgé à 18h. Parti.'], patrick: ['ticket', 'Resto ! J\'ai le ticket !'], gribouille: [null, 'Moi ? Je ne me salis pas les mains.'] };
 const SLOTS = [
   { k: 'COMMENT ?', ok: ['tasse', 'rouge', 'diable'], no: 'Ça ne prouve rien, mon petit.' },
@@ -403,9 +405,9 @@ function updateAccuse(dt) {
   if (A.msg) { A.msg.t += dt; if (A.msg.t > 2.2 || (A.msg.t > .4 && hit('act'))) { const f = A.msg.after; A.msg = null; f && f(); } return; }
   if (hit('book')) { G.state = 'book'; G.bookSel = 0; G.bookReturn = 'accuse'; return; }
   if (A.phase === 'suspect') {
-    if (hit('left')) A.sel = (A.sel + 5) % 6; if (hit('right')) A.sel = (A.sel + 1) % 6;
+    const L = sus(), n = L.length; if (hit('left')) A.sel = (A.sel + n - 1) % n; if (hit('right')) A.sel = (A.sel + 1) % n;
     if (hit('act')) {
-      const s = SUSPECTS[A.sel];
+      const s = L[A.sel];
       if (s === 'brochard') { accMsg('brochard', 'Moi ? Une vieille dame ?', () => { A.phase = 'slot'; A.sel = 0; A.slot = 0; }); }
       else { const al = ALIBI[s]; A.hearts--; Sound.play('bad'); accMsg(s, al[1], () => { if (A.hearts <= 0) fired('Personne ne te croit plus.'); }); }
     }

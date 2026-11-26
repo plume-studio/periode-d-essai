@@ -252,8 +252,10 @@ function drawBook() {
   tx(g, "CARNET D'ENQUÊTE", 100, 52, { f: 'disp', size: 40, ls: 2 });
   tx(g, G.clues.length + ' / ' + CLUE_TOTAL() + ' INDICES', W - 100, 50, { f: 'mono', size: 14, col: UI.vio, align: 'right', ls: 3 });
   if (!G.clues.length) { tx(g, 'Rien pour l\'instant…', W / 2, H / 2, { f: 'type', size: 28, col: UI.ink, align: 'center' }); return; }
-  const cw = 168, ch = 196, cols = 6, gx = (W - 148 - cols * cw) / (cols + 1);
-  G.clues.forEach((id, i) => { const x = 74 + gx + (i % cols) * (cw + gx), y = 104 + Math.floor(i / cols) * (ch + 18) + ((i * 7) % 5); if (y < H - 230) clueFrame(g, id, x, y, cw, ch, i === G.bookSel); });
+  const cw = 168, ch = 196, cols = 6, gx = (W - 148 - cols * cw) / (cols + 1), rows = 2, row0 = Math.max(0, Math.floor((G.bookSel || 0) / cols) - rows + 1);
+  G.clues.forEach((id, i) => { const r = Math.floor(i / cols) - row0; if (r < 0 || r >= rows) return; const x = 74 + gx + (i % cols) * (cw + gx), y = 104 + r * (ch + 18) + ((i * 7) % 5); clueFrame(g, id, x, y, cw, ch, i === G.bookSel); });
+  if (Math.ceil(G.clues.length / cols) > row0 + rows) tx(g, '▼  ↓ SUITE', W / 2, H - 66, { f: 'mono', size: 12, col: UI.ink, align: 'center', ls: 2 });
+  if (row0 > 0) tx(g, '▲  ↑', W / 2, 96, { f: 'mono', size: 12, col: UI.ink, align: 'center', ls: 2 });
   const C = CLUES[G.clues[G.bookSel || 0]];
   if (C) { panelBox(g, 140, H - 52, W - 280, 40, { r: 8, fill: UI.paper, line: 'rgba(0,0,0,.2)' }); tx(g, C.s, W / 2, H - 25, { f: 'type', size: 18, col: UI.ink, align: 'center' }); }
 }
@@ -409,10 +411,11 @@ function drawAccuse() {
   panelBox(g, 20, 18, 220, 56); tx(g, 'CRÉDIBILITÉ', 38, 52, { f: 'mono', size: 11, col: UI.mute, ls: 2 });
   for (let i = 0; i < 3; i++) { g.fillStyle = i < A.hearts ? UI.red : 'rgba(255,255,255,.15)'; const hx = 160 + i * 24, hy = 44; g.beginPath(); g.moveTo(hx, hy + 8); g.bezierCurveTo(hx - 12, hy, hx - 8, hy - 10, hx, hy - 4); g.bezierCurveTo(hx + 8, hy - 10, hx + 12, hy, hx, hy + 8); g.fill(); }
   keycap(g, 'TAB', W - 200, 30, 0, 30); tx(g, 'CARNET', W - 130, 51, { f: 'mono', size: 12, col: UI.mute, ls: 2 });
+  if (A.msg) { const w = tw(g, '« ' + A.msg.text + ' »', { f: 'type', size: 24 }) + 60; panelBox(g, W / 2 - w / 2, 90, w, 64, { fill: UI.paper, line: 'rgba(0,0,0,.2)' }); tx(g, (CAST[A.msg.who] ? CAST[A.msg.who].name.toUpperCase() : ''), W / 2 - w / 2 + 14, 84, { f: 'mono', size: 11, col: UI.acc, ls: 2 }); tx(g, '« ' + A.msg.text + ' »', W / 2, 131, { f: 'type', size: 24, col: UI.ink, align: 'center' }); }
   if (A.phase === 'suspect') {
     tx(g, 'QUI A TUÉ BERNARD ?', W / 2, H - 236, { f: 'disp', size: 46, col: UI.text, align: 'center', ls: 3, sh: 3 });
-    SUSPECTS.forEach((s, i) => {
-      const sel = i === A.sel, x = W / 2 - 3 * 156 + i * 156 + 18, y = H - 200 - (sel ? 10 : 0);
+    const L = sus(); L.forEach((s, i) => {
+      const sel = i === A.sel, x = W / 2 - L.length / 2 * 156 + i * 156 + 18, y = H - 200 - (sel ? 10 : 0);
       g.save(); g.shadowColor = 'rgba(0,0,0,.5)'; g.shadowBlur = 14; rr(g, x, y, 120, 168, 8); g.fillStyle = sel ? UI.paper : '#26222e'; g.fill(); g.restore();
       rr(g, x + 8, y + 8, 104, 108, 4); g.fillStyle = sel ? '#4f78c9' : '#3a3546'; g.fill();
       g.save(); rr(g, x + 8, y + 8, 104, 108, 4); g.clip(); drawPerson(g, s, x + 12, y + 6, 3); g.restore();

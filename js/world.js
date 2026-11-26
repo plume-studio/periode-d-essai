@@ -291,9 +291,9 @@ function drawWorld(g, extra) {
   World.decals.forEach(d => d.draw(g));
   const list = [];
   World.props.forEach(p => { if (!p.hidden) list.push({ y: p.sortY, p }); });
-  World.ents.forEach(e => { if (!e.hidden) list.push({ y: e.y + (e.id === 'player' && !G.sitting ? 24 : 0), e }); });
+  World.ents.forEach(e => { if (!e.hidden) list.push({ y: e.y + (e.id === 'player' && !G.sitting ? 24 : 0), y2: e.y, e }); });
   if (World.showTipped) list.push({ y: 19 * T + 30, fn: drawTipped });
-  list.sort((a, b) => a.y - b.y);
+  list.sort((a, b) => (a.e && b.e) ? a.y2 - b.y2 : a.y - b.y);
   for (const it of list) {
     if (it.e) drawChar(g, it.e);
     else if (it.fn) it.fn(g);

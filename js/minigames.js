@@ -87,6 +87,7 @@ function MG_cafe(p) {
     title: p.plant ? 'ARROSAGE' : 'CAFÉ', cups, i: 0, fill: 0, rate: 0, holding: false, score: 0, flash: 0, plant: p.plant,
     hint: 'Maintiens ESPACE, lâche dans la zone',
     update(dt) {
+      if (!this.armed) { if (!keys.act) this.armed = true; return; }
       const c = this.cups[this.i]; this.flash = Math.max(0, this.flash - dt);
       if (keys.act) { this.holding = true; this.rate = Math.min(.75, this.rate + dt * .9); this.fill += this.rate * dt; if (Math.random() < .3) Sound.play('pour'); if (this.fill > 1) { this.fill = 0; this.rate = 0; this.holding = false; Sound.play('bad'); this.flash = 1; this.score -= .5; } }
       else if (this.holding) {
@@ -355,7 +356,7 @@ function MG_coffre(p) {
       this.flash = Math.max(0, this.flash - dt);
       if (hit('left')) this.cx = Math.max(0, this.cx - 1); if (hit('right')) this.cx = Math.min(2, this.cx + 1);
       if (hit('up')) this.cy = Math.max(0, this.cy - 1); if (hit('down')) this.cy = Math.min(3, this.cy + 1);
-      let d = null; for (let i = 0; i < 10; i++) if (hit('d' + i)) d = '' + i;
+      let d = null; for (let i = 0; i < 10; i++) if (hit('d' + i)) d = (d || '') + i;
       if (hit('act')) { const k = this.key(this.cx, this.cy); if (k === '←') this.inp = this.inp.slice(0, -1); else if (k !== '') d = k; }
       if (hit('back')) this.inp = this.inp.slice(0, -1);
       if (hit('esc')) { this.done = true; this.ok = false; this.cancel = true; return; }

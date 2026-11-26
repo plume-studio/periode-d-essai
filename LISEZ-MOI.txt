@@ -8,6 +8,7 @@ COMMANDES
   E ou Espace     : agir / parler / valider
   TAB             : carnet d'enquête
   T               : replier / déplier la liste des tâches
+  X               : reposer l'objet que tu portes
   Échap           : pause
   M               : couper le son
 
