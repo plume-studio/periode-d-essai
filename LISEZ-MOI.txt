@@ -1,0 +1,24 @@
+PÉRIODE D'ESSAI — Survivre à la semaine.
+========================================
+
+JOUER : double-clique sur index.html (Chrome ou Safari).
+
+COMMANDES
+  ZQSD ou flèches : se déplacer
+  E ou Espace     : agir / parler / valider
+  TAB             : carnet d'enquête
+  Échap           : pause
+  M               : couper le son
+
+PRINCIPE
+  5 journées (lundi → vendredi) + 3 soirées d'infiltration.
+  Fais ton boulot (mini-jeux) pour monter en grade,
+  et fouille en douce pour découvrir qui a tué Bernard.
+  Cônes rouges = regards des collègues. Le soir, évite la lampe du vigile.
+  Vendredi 16h : accuse le coupable avec les bonnes preuves.
+  Il y a une fin cachée…
+
+Graphismes : « Office Pixel Art » by Imersa Studios
+https://imersastudios.itch.io/office-pixel-art
+Polices : Anton, Space Grotesk, JetBrains Mono, Special Elite (SIL Open Font License, voir dossier fonts).
+Un jeu PLUME PLAYLAB.

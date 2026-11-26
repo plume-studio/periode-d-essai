@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="PÉRIODE D'ESSAI — Survivre à la semaine. Premier jour au bureau, premier cadavre. Monte en grade, fouille en douce, démasque l'assassin. Un jeu PLUME PLAYLAB.">
+<meta property="og:title" content="PÉRIODE D'ESSAI — Survivre à la semaine.">
+<meta property="og:description" content="Premier jour au bureau. Premier cadavre. Un jeu PLUME PLAYLAB.">
+<meta property="og:image" content="og-image.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>PÉRIODE D'ESSAI — Survivre à la semaine.</title>
+<style>
+  html,body{margin:0;height:100%;background:#060509;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center}
+  canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;box-shadow:0 0 60px rgba(0,0,0,.6)}
+  #splash{position:fixed;inset:0;background:#060509 url(assets/cover.jpg) center/cover no-repeat;cursor:pointer;z-index:5;transition:opacity .7s ease}
+  #splash.out{opacity:0;pointer-events:none}
+  #splash .hint{position:absolute;left:0;right:0;bottom:4.5vh;text-align:center;font:600 13px/1 'JetBrains Mono',Menlo,monospace;letter-spacing:.35em;color:#f4efe6;opacity:.75;animation:pulse 1.6s ease-in-out infinite;text-shadow:0 2px 8px #000}
+  @keyframes pulse{50%{opacity:.25}}
+</style>
+</head>
+<body>
+<div id="splash" role="button" aria-label="Jouer"><div class="hint">CLIQUE OU APPUIE SUR UNE TOUCHE</div></div>
+<canvas id="game"></canvas>
+<script src="js/fonts.js"></script>
+<script src="js/atlas.js"></script>
+<script src="js/core.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/world.js"></script>
+<script src="js/minigames.js"></script>
+<script src="js/game.js"></script>
+<script src="js/render.js"></script>
+<script src="js/story.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+<script>
+  window.SPLASH = !/[?&]day=/.test(location.search);
+  const sp = document.getElementById('splash');
+  if (!window.SPLASH) sp.remove();
+  function go(e) { if (!window.SPLASH) return; if (e && e.type === 'keydown') { e.preventDefault(); e.stopImmediatePropagation(); } window.SPLASH = false; Sound.unlock(); Sound.play('ok'); sp.classList.add('out'); G.titleT = 0; setTimeout(() => sp.remove(), 800); }
+  sp && sp.addEventListener('click', go); addEventListener('keydown', go, true);
+</script>
+</body>
+</html>
