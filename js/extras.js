@@ -33,7 +33,10 @@ const REACT = {
 const SHRUG = { gerard: 'Et alors ?', josiane: 'Je ne vois pas.', kevin: 'Aucune idée, mec.', patrick: 'Connais pas.', brochard: 'Oh, je ne sais pas, mon petit.', gribouille: 'Synergie !' };
 
 // ---------- Parler / montrer un indice ----------
-function openTalk(id) { G.talk = { id, phase: 'menu', sel: 0, msg: null }; G.state = 'talk'; Sound.play('blip'); clearPressed(); const e = getEnt(id), p = player(); if (e && p) { e.dir = Math.abs(p.x - e.x) > Math.abs(p.y - e.y) ? (p.x > e.x ? 'right' : 'left') : (p.y > e.y ? 'down' : 'up'); } }
+function haltNPC(id) { const e = getEnt(id); if (!e) return; e.halt = true; e.path = null; e.moving = false; e.onArrive = null; }
+function releaseNPC(id) { const e = getEnt(id); if (!e || !e.halt) return; e.halt = false; if (e.wander) e.wait = 3; else if (!e.lock) e.curS = -9; }
+function closeTalk() { if (G.talk) releaseNPC(G.talk.id); G.talk = null; G.state = 'play'; }
+function openTalk(id) { haltNPC(id); G.talk = { id, phase: 'menu', sel: 0, msg: null }; G.state = 'talk'; Sound.play('blip'); clearPressed(); const e = getEnt(id), p = player(); if (e && p) { e.dir = Math.abs(p.x - e.x) > Math.abs(p.y - e.y) ? (p.x > e.x ? 'right' : 'left') : (p.y > e.y ? 'down' : 'up'); } }
 function talkAll() {
   const out = [];
   World.ents.forEach(e => {
@@ -56,13 +59,13 @@ function talkAll() {
 function updateTalk(dt) {
   const T_ = G.talk; if (!T_) { G.state = 'play'; return; }
   if (T_.msg) { T_.msg.t += dt; if (T_.msg.t > .35 && hit('act')) { const f = T_.msg.after; T_.msg = null; if (f) f(); else { T_.phase = 'menu'; T_.sel = 0; } } return; }
-  if (hit('esc') || hit('book')) { G.talk = null; G.state = 'play'; return; }
+  if (hit('esc') || hit('book')) { closeTalk(); return; }
   if (T_.phase === 'menu') {
     if (hit('up')) T_.sel = (T_.sel + 2) % 3; if (hit('down')) T_.sel = (T_.sel + 1) % 3;
     if (hit('act')) {
       if (T_.sel === 0) { T_.msg = { text: pick(LINES[T_.id]), t: 0 }; Sound.play('talk'); }
       else if (T_.sel === 1) { if (!G.clues.length) { T_.msg = { text: '(Tu n\'as encore aucun indice.)', t: 0, me: true }; } else { T_.phase = 'clue'; T_.sel = 0; } }
-      else { G.talk = null; G.state = 'play'; }
+      else { closeTalk(); }
     }
   } else {
     const n = G.clues.length; if (hit('left')) T_.sel = (T_.sel + n - 1) % n; if (hit('right')) T_.sel = (T_.sel + 1) % n;
@@ -70,7 +73,7 @@ function updateTalk(dt) {
     if (hit('act')) {
       const c = G.clues[T_.sel], r = (REACT[T_.id] || {})[c];
       Sound.play('talk');
-      if (r) { T_.msg = { text: r[0], t: 0, after: () => { if (r[1] && !hasClue(r[1])) { giveClue(r[1]); G.rep += 15; G.talk = null; G.state = 'play'; } else { T_.phase = 'menu'; T_.sel = 1; } } }; if (r[1] && !hasClue(r[1])) Cam.shake = 3; }
+      if (r) { T_.msg = { text: r[0], t: 0, after: () => { if (r[1] && !hasClue(r[1])) { giveClue(r[1]); G.rep += 15; closeTalk(); } else { T_.phase = 'menu'; T_.sel = 1; } } }; if (r[1] && !hasClue(r[1])) Cam.shake = 3; }
       else T_.msg = { text: SHRUG[T_.id] || '…', t: 0 };
     }
   }
@@ -99,11 +102,11 @@ function drawTalk() {
 }
 
 // ---------- Choix ----------
-function openChoice(id, text, opts) { G.choice = { id, text, opts, sel: 0, t: 0 }; G.state = 'choice'; Sound.play('blip'); clearPressed(); }
+function openChoice(id, text, opts) { haltNPC(id); G.choice = { id, text, opts, sel: 0, t: 0 }; G.state = 'choice'; Sound.play('blip'); clearPressed(); }
 function updateChoice(dt) {
   const C = G.choice; C.t += dt;
   if (hit('left') || hit('up')) C.sel = 0; if (hit('right') || hit('down')) C.sel = 1;
-  if (C.t > .4 && hit('act')) { const o = C.opts[C.sel]; G.choice = null; G.state = 'play'; Sound.play('ok'); o.fn && o.fn(); }
+  if (C.t > .4 && hit('act')) { const o = C.opts[C.sel]; releaseNPC(C.id); G.choice = null; G.state = 'play'; Sound.play('ok'); o.fn && o.fn(); }
 }
 function drawChoice() {
   const g = ctx, C = G.choice; if (!C) return;
@@ -191,7 +194,7 @@ function addDecor() {
   World.decals.push({ draw: drawLightPools }, { draw: drawWindows });
   [[18.2, 10, 'poster1'], [26.6, 10, 'poster2'], [3, 14, 'poster3'], [14.2, 14, 'poster1']].forEach(([x, y, k]) => World.decals.push({ draw(g) { drawPoster(g, k, x * T, y * T + 4); } }));
   World.decals.push({ draw(g) { drawExit(g, 5.5 * T, 13 * T + 26); drawExit(g, 17.5 * T, 13 * T + 26); } });
-  placeC('extinguisher', 10.5 * T, 11 * T + 30, { sort: -10 }); placeC('extinguisher', 23.5 * T, 15 * T + 30, { sort: -10 });
+  World.decals.push({ draw(g) { [[10.5, 10], [23.3, 14], [2.2, 14]].forEach(([x, y]) => g.drawImage(SPR.extinguisher, x * T - 6, y * T + 4)); } });
 }
 function drawWindows(g) {
   const night = World.night || G.blackout, c = night ? [20, 22, 48] : skyAt(G.time || 540);
@@ -313,9 +316,9 @@ function spawnExtras() {
   }
 }
 function updateWanderer(e, dt) {
-  if (e.hidden || e.lock || (e.path && e.path.length)) return;
+  if (e.hidden || e.lock || e.halt || (e.path && e.path.length)) return;
   if (e.wait > 0) { e.wait -= dt; return; }
-  e.ri = (e.ri + 1) % e.route.length; const [s, w] = e.route[e.ri]; e.wait = w * rnd(.7, 1.3); goTo(e, s);
+  e.ri = (e.ri + 1) % e.route.length; const [s, w] = e.route[e.ri]; e.wait = w * rnd(1.6, 2.6); goTo(e, s);
 }
 (function hookNPC() {
   const sd = startDay; startDay = function (d, skip) { sd(d, skip); spawnExtras(); };
@@ -409,3 +412,6 @@ function sitInteract() {
     drawIcon(g, 'ear', px - 10, py - 94, 20);
   };
 })();
+
+// un PNJ à qui l'on parle ne bouge plus
+(function hookHalt() { const un = updateNPC; updateNPC = function (e, dt) { if (e.halt) { e.moving = false; if (e.bubbleT > 0) { e.bubbleT -= dt; if (e.bubbleT <= 0) e.bubble = null; } return; } un(e, dt); }; })();

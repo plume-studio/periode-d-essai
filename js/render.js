@@ -112,7 +112,7 @@ function drawDarkness() {
   const hole = (x, y, r, a = 1) => { const [sx, sy] = S(x, y); const gr = g.createRadialGradient(sx, sy, 0, sx, sy, r); gr.addColorStop(0, 'rgba(0,0,0,' + a + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.beginPath(); g.arc(sx, sy, r, 0, 7); g.fill(); };
   const p = player(); if (p) hole(p.x, p.y - 14, 170, .95);
   // écrans allumés et veilleuses
-  [[3, 4], [7, 4], [11, 4], [3, 6], [11, 6], [32, 4], [5.5, 17], [13.5, 11], [14.5, 15.5], [16.5, 6]].forEach(([x, y]) => hole(x * T, y * T, 60, .5));
+  [[3, 4], [7, 4], [11, 4], [3, 6], [11, 6], [32, 4], [5.5, 17], [14.5, 8.5], [14.5, 15.5], [16.5, 6]].forEach(([x, y]) => hole(x * T, y * T, 60, .5));
   [[5.5, 21.5], [17.5, 12], [29, 12], [8.5, 9.5]].forEach(([x, y]) => hole(x * T, y * T, 110, .35));
   World.ents.forEach(e => {
     if (!e.guard || e.hidden) return; const a = e.lookAng != null ? e.lookAng : DIRANG[e.dir]; const [sx, sy] = S(e.x, e.y - 12);

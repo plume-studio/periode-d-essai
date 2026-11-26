@@ -234,7 +234,7 @@ DAYS[3] = {
     { card: ['CHARGÉ DE MISSION', 'Réunion à 11h'], dur: 2 }
   ],
   tasks: [
-    { id: 'reseau', icon: 'net', label: 'Réparer le réseau', req: true, target: () => P(13.5, 12.4) },
+    { id: 'reseau', icon: 'net', label: 'Réparer le réseau', req: true, target: () => P(14.5, 7.7) },
     { id: 'classement', icon: 'folder', label: 'Classer les dossiers', req: true, target: () => P(15.5, 3.4) },
     { id: 'reunion', icon: 'meet', label: 'Réunion du patron', req: true, from: hm(11), until: hm(11, 30), target: () => P(22.5, 3.7) },
     { id: 'courrier', icon: 'mail', label: 'Courrier', req: true, count: 6, target: carryTarget('courrier', P(4.5, 18.6)) },
@@ -245,7 +245,7 @@ DAYS[3] = {
   tick: coolerChat([['kevin', 'Le patron a fait effacer des fichiers.'], ['josiane', 'Lesquels ?'], ['kevin', 'Les badges de lundi.'], ['josiane', '…J\'ai une copie ?'], ['kevin', 'Sur mon PC. Chut.']]),
   interacts() {
     return [
-      mgTask('reseau', 13.5, 12.5, 'Réparer', 'reseau', { size: 5 }),
+      mgTask('reseau', 14.5, 7.7, 'Réparer', 'reseau', { size: 5 }),
       mgTask('classement', 15.5, 3.4, 'Classer', 'classement', { n: 16, speed: 1.6 }),
       mgTask('reunion', 22.5, 3.7, 'S\'asseoir', 'reunion', { dur: 42, speaker: 'gribouille', rate: .12, askTime: 1.2 }),
       pickCarry('courrier', 4.5, 18.6, 'Prendre le courrier', { icon: 'mail', to: ['josiane', 'patrick', 'kevin', 'gerard', 'brochard', 'gribouille'], n: 6 }),

@@ -83,6 +83,7 @@ function placeFurniture() {
   // classeurs + photocopieuse
   place('filing_cabinet_front', 14, 2, { id: 'cab1' }); place('filing_cabinet_front', 15, 2, { id: 'cab2' }); place('filing_cabinet_front', 16, 2, { id: 'cab3' });
   placeC('copier', 16.5 * T, 6 * T - 2, { id: 'copier', solid: [[16, 5]] });
+  placeC('rack', 14.5 * T, 9 * T - 2, { id: 'rack', solid: [[14, 8]] });
   // --- Salle de réunion ---
   place('office_plant_front', 19, 2); place('tall_plant_front', 27, 2);
   place('projector_screen_front', 22.5, 1, { solid: false }); place('wall_clock_front', 26, 1, { solid: false });
@@ -102,8 +103,6 @@ function placeFurniture() {
   place('wall_clock_front', 31.5, 1, { solid: false });
   // --- Couloir ---
   place('tall_plant_front', 1, 11); place('tall_plant_front', 34, 11);
-  placeC('rack', 13.5 * T, 12 * T - 2, { id: 'rack', solid: [[13, 11]] });
-  place('office_plant_front', 26, 11);
   // --- Accueil ---
   place('office_chair_front', 6, 16, { solid: false, sort: -12 });
   place('office_desk_back', 4, 17, { id: 'desk_brochard' }); place('office_desk_back', 6, 17, { id: 'desk_brochard2' });
@@ -275,7 +274,7 @@ function drawChar(g, e) {
   if (e.hidden) return;
   const im = IMG[CAST[e.id] ? CAST[e.id].img : 'char_player'];
   const rowBase = e.moving ? 4 : 0, dirRow = { down: 0, left: 1, right: 2, up: 3 }[e.dir] || 0;
-  const fr = Math.floor(e.anim * (e.moving ? 8 : 4)) % 4;
+  const fr = e.moving ? Math.floor(e.anim * 8) % 4 : 0;
   g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(Math.round(e.x), Math.round(e.y), 8, 3, 0, 0, 7); g.fill();
   g.drawImage(im, fr * 32, (rowBase + dirRow) * 32, 32, 32, Math.round(e.x - 16), Math.round(e.y - 30), 32, 32);
 }
