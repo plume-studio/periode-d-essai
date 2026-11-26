@@ -15,10 +15,11 @@
   html,body{margin:0;height:100%;background:#060509;overflow:hidden}
   body{display:flex;align-items:center;justify-content:center}
   canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;box-shadow:0 0 60px rgba(0,0,0,.6)}
-  #splash{position:fixed;inset:0;background:#060509 url(assets/cover.jpg) center/cover no-repeat;cursor:pointer;z-index:5;transition:opacity .7s ease}
+  #splash{position:fixed;inset:0;background:#060509 url(assets/cover.jpg) 18% center/cover no-repeat;cursor:pointer;z-index:5;transition:opacity .7s ease}
   #splash.out{opacity:0;pointer-events:none}
   #splash .hint{position:absolute;left:0;right:0;bottom:4.5vh;text-align:center;font:600 13px/1 'JetBrains Mono',Menlo,monospace;letter-spacing:.35em;color:#f4efe6;opacity:.75;animation:pulse 1.6s ease-in-out infinite;text-shadow:0 2px 8px #000}
   @keyframes pulse{50%{opacity:.25}}
+  @media (max-aspect-ratio:4/3){#splash{background-size:contain;background-position:center}}
 </style>
 </head>
 <body>
